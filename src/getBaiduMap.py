@@ -40,33 +40,34 @@ class BaiduMap(object):
 		loopValue = 1 ; loopCount = 1
 
 		while loopValue <= loopCount:
-			getUrl    = "http://api.map.baidu.com/?qt=" + qt + "&c=" + str(cityId) + "&wd=" + info_ + "&rn=" + rn + "&pn=" + str(loopValue) + "&ie=utf-8&oue=1&fromproduct=jsapi&res=api&callback=BMap._rd._cbk7303&ak=E4805d16520de693a3fe707cdc962045";
+			# http://api.map.baidu.com/?qt=s&c=201&wd=%E5%8F%A4%E5%B7%B7%20%E9%85%92%E5%BA%97&rn=10&ie=utf-8&oue=1&fromproduct=jsapi&res=api&callback=BMap._rd._cbk30680&ak=E4805d16520de693a3fe707cdc962045
+			# http://api.map.baidu.com/?qt=s&c=201&wd=古巷 酒店&rn=10&pn=1&ie=utf-8&oue=1&fromproduct=jsapi&res=api&callback=BMap._rd._cbk7303&ak=E4805d16520de693a3fe707cdc962045
+			getUrl    = "http://api.map.baidu.com/?qt=" + qt + "&c=" + str(cityId) + "&wd=" + info_ + "&rn=" + rn + "&pn=" + str(loopValue - 1) + "&ie=utf-8&oue=1&fromproduct=jsapi&res=api&callback=BMap._rd._cbk7303&ak=E4805d16520de693a3fe707cdc962045";
+			print(getUrl)
 			webData   = requests.get(getUrl).text
-			
-			if loopValue == 1:
-				tempValue = int(re.search("\"total\":([\\s\\S]*?),",webData).group(1)) #数量
-				print(tempValue)
-				if tempValue >= 1:
-					loopCount = int(tempValue / 10)
-					if loopCount < tempValue / 10:
-						loopCount = loopCount + 1
+			tempValue = int(re.search("\"total\":([\\s\\S]*?),",webData).group(1)) #数量
 
-						###############################################
-						#            BUG，loopCount + 1 后报错        #
-						###############################################
-						
-						print("总共需要循环：" + str(loopCount))
-				else :
-					loopCount = 0
+			if tempValue > 0:
+				if loopValue == 1:
+					modNum    = tempValue % 10 # 第一次
+					if modNum > 0:
+						loopCount = (int)(tempValue / 10 + 1)
+					else :
+						loopCount = (int)(tempValue / 10)
+					print("总共需要循环：" + str(loopCount))
 
-			reJson   = re.search("content\":([\\s\\S]*?),\"current_city",webData).group(1)
-			jsonData = json.loads(reJson)
-			print(str(loopValue) + ":" ,end="")
-			print(jsonData)
-			loopValue = loopValue + 1
-
+				reJson   = re.search("content\":([\\s\\S]*?),\"current_city",webData).group(1)
+				jsonData = json.loads(reJson)
+				# 数据处理
+				print(str(loopValue) + ":" + str(len(jsonData)),end="")
+				print(jsonData)
+				# 处理结束
+				loopValue = loopValue + 1
+			else :
+				print("over")
+				loopValue = loopCount + 1
 
 
 if __name__ == '__main__':
 	obj = BaiduMap()
-	obj.getMapData(obj.getCityData("潮州"),"酒店")
+	obj.getMapData(obj.getCityData("汕头"),"老妈宫 粽")

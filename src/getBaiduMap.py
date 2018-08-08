@@ -1,7 +1,9 @@
 import requests
 import os
 import re
+import csv
 import json
+
 from bs4 import BeautifulSoup
 
 class BaiduMap(object):
@@ -9,7 +11,7 @@ class BaiduMap(object):
 	def __init__(self):
 		super(BaiduMap, self).__init__()
 
-	#城市获取数据
+	
 	def getCityData(self,cityName):
 		# http://map.baidu.com/?newmap=1&qt=cur&ie=utf-8&wd=  &oue=1&res=jc
 		try:
@@ -31,6 +33,21 @@ class BaiduMap(object):
 		except Exception as e:
 			raise
 
+	# /**
+	#  * [createAndWrite 创建scv文件并写入]
+	#  * 
+	#  */
+	def createAndWrite(self,fileName,rowHeader,rowData=[]):
+		if os.path(fileName):
+			fileName = "new_" + fileName
+		csvFile = open(fileName,'w')
+		writer  = csv.writer(csvFile)
+		writer.writerow(rowHeader)
+		if len(rowData) > 0:
+			writer.writerows(rowData)
+		csvFile.close()
+
+
 	def getMapData(self,cityId,info_): 
 
 		if cityId < 0 :
@@ -40,10 +57,10 @@ class BaiduMap(object):
 		loopValue = 1 ; loopCount = 1
 
 		while loopValue <= loopCount:
-			# http://api.map.baidu.com/?qt=s&c=201&wd=%E5%8F%A4%E5%B7%B7%20%E9%85%92%E5%BA%97&rn=10&ie=utf-8&oue=1&fromproduct=jsapi&res=api&callback=BMap._rd._cbk30680&ak=E4805d16520de693a3fe707cdc962045
-			# http://api.map.baidu.com/?qt=s&c=201&wd=古巷 酒店&rn=10&pn=1&ie=utf-8&oue=1&fromproduct=jsapi&res=api&callback=BMap._rd._cbk7303&ak=E4805d16520de693a3fe707cdc962045
+
 			getUrl    = "http://api.map.baidu.com/?qt=" + qt + "&c=" + str(cityId) + "&wd=" + info_ + "&rn=" + rn + "&pn=" + str(loopValue - 1) + "&ie=utf-8&oue=1&fromproduct=jsapi&res=api&callback=BMap._rd._cbk7303&ak=E4805d16520de693a3fe707cdc962045";
 			print(getUrl)
+
 			webData   = requests.get(getUrl).text
 			tempValue = int(re.search("\"total\":([\\s\\S]*?),",webData).group(1)) #数量
 
@@ -60,7 +77,15 @@ class BaiduMap(object):
 				jsonData = json.loads(reJson)
 				# 数据处理
 				print(str(loopValue) + ":" + str(len(jsonData)),end="")
-				print(jsonData)
+				# print(jsonData)
+				for x in range(0,len(jsonData)):
+					try:
+						print(jsonData[x]['name'] + " " + jsonData[x]['address_norm'] + " " + jsonData[x]['addr'])
+					except Exception as e:
+						print(jsonData[x])
+						# exit()
+					
+				
 				# 处理结束
 				loopValue = loopValue + 1
 			else :
@@ -70,4 +95,4 @@ class BaiduMap(object):
 
 if __name__ == '__main__':
 	obj = BaiduMap()
-	obj.getMapData(obj.getCityData("汕头"),"老妈宫 粽")
+	obj.getMapData(obj.getCityData("潮州"),"古巷镇$$美食")

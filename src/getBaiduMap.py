@@ -102,7 +102,6 @@ class BaiduMap():
 				# 处理结束
 				loopValue = loopValue + 1
 			else :
-				
 				break
 
 		if len(allData) > 0:
@@ -129,10 +128,24 @@ class windowGUI(frame.MyFrame1):
 			wx.MessageDialog(None, u"验证失败!", u"城市验证",wx.ICON_QUESTION).ShowModal()
 
 	def startJob( self, event ):
+
 		if not self.starting:
-			self.starting = True
-			newThread = webThread(1,"Thread-1",1)
-			newThread.start()
+
+			cityText     = self.m_comboBox2.GetValue() # 城市
+			locationText = self.m_textCtrl4.GetValue() # 地点
+			articleText  = self.m_textCtrl5.GetValue() # 物品
+
+			if cityText.strip():
+				if articleText.strip():
+					if  locationText.strip():
+						articleText = locationText + "$$" + articleText
+					self.starting = True
+					newThread = webThread(1,"Thread-1",1,cityText,articleText)
+					newThread.start()
+				else :
+					wx.MessageDialog(None, u"检索物不能为空", u"Tip:",wx.ICON_QUESTION).ShowModal()
+			else :
+				wx.MessageDialog(None, u"城市不能为空", u"Tip:",wx.ICON_QUESTION).ShowModal()
 		else : 
 			wx.MessageDialog(None, u"线程运行中", u"Tip:",wx.ICON_QUESTION).ShowModal()
 
@@ -141,17 +154,19 @@ class windowGUI(frame.MyFrame1):
 
 class webThread(threading.Thread):
 	"""docstring for webThread"""
-	def __init__(self,threadID, name ,counter):
+	def __init__(self,threadID, name,counter,cityText,articleText):
 
 		super(webThread, self).__init__()
 		threading.Thread.__init__(self)
-		self.threadID = threadID
-		self.name = name
-		self.counter = counter
-	
+		self.threadID    = threadID
+		self.name        = name
+		self.counter     = counter
+		self.cityText    = cityText
+		self.articleText = articleText
+
 	def run(self):
 		obj = BaiduMap()
-		obj.getMapData(obj.getCityData("潮州"),"古巷镇$$美食")
+		obj.getMapData(obj.getCityData(self.cityText),self.articleText)
 
 	def __del__(self):
 		wx.CallAfter(pub.sendMessage, "setStBool", msg=False)

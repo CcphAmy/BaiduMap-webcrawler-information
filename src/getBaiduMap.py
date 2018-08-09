@@ -42,7 +42,7 @@ class BaiduMap():
 
 		if os.path.exists(fileName):
 			fileName = str(time.time()) + "_" + fileName
-
+		wx.CallAfter(pub.sendMessage, "updateText", content="writing:" + fileName)
 		csvFile = open(fileName,'w',newline='')
 		writer  = csv.writer(csvFile)
 
@@ -111,23 +111,33 @@ class BaiduMap():
 			self.createAndWrite(str(cityId) + "_" + re.sub(rstr,"_",info_) + ".csv",rowHeader,allData)
 
 			wx.CallAfter(pub.sendMessage, "updateText", content="over")
-
 		else :
 			wx.CallAfter(pub.sendMessage, "updateText", content="error content")
 
 class windowGUI(frame.MyFrame1):
 	"""docstring for windowGUI"""
 	obj = BaiduMap()
-
+	starting = False
 	def __init__(self,parent):
 		super(windowGUI, self).__init__(parent)
+		pub.subscribe(self.setStBool, "setStBool")
 
 	def checkCity( self, event ):
-		print(event)
-	
+		if int(self.obj.getCityData(self.m_comboBox2.GetValue())) > 0:
+			wx.MessageDialog(None, u"信息正确!", u"城市验证",wx.ICON_QUESTION).ShowModal()
+		else :
+			wx.MessageDialog(None, u"验证失败!", u"城市验证",wx.ICON_QUESTION).ShowModal()
+
 	def startJob( self, event ):
-		newThread = webThread(1,"Thread-1",1)
-		newThread.start()
+		if not self.starting:
+			self.starting = True
+			newThread = webThread(1,"Thread-1",1)
+			newThread.start()
+		else : 
+			wx.MessageDialog(None, u"线程运行中", u"Tip:",wx.ICON_QUESTION).ShowModal()
+
+	def setStBool(self, msg) :
+		self.starting = msg
 
 class webThread(threading.Thread):
 	"""docstring for webThread"""
@@ -142,12 +152,13 @@ class webThread(threading.Thread):
 	def run(self):
 		obj = BaiduMap()
 		obj.getMapData(obj.getCityData("潮州"),"古巷镇$$美食")
-# wx.CallAfter(pub.sendMessage, "update", msg=i)
+
+	def __del__(self):
+		wx.CallAfter(pub.sendMessage, "setStBool", msg=False)
+
 if __name__ == '__main__':
 
 	app    = wx.App(False)
 	frame1 = windowGUI(None)
 	frame1.Show(True)
 	app.MainLoop()
-	# obj   = BaiduMap()
-	# obj.getMapData(obj.getCityData("潮州"),"古巷镇$$美食")

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*- 
-
 import requests
 import os
 import re
@@ -14,7 +13,7 @@ import frame
 
 from bs4 import BeautifulSoup
 
-class BaiduMap(object):
+class BaiduMap():
 	"""docstring for BaiduMap"""
 	def __init__(self):
 		super(BaiduMap, self).__init__()
@@ -24,7 +23,6 @@ class BaiduMap(object):
 		try:
 			webData = requests.get("http://map.baidu.com/?newmap=1&qt=cur&ie=utf-8&wd=" + cityName + "&oue=1&res=jc").text
 			jsonData = json.loads(webData)
-			# print(jsonData,end="\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
 
 			if 'weather' in jsonData: #存在天气预报的情况下
 				weatherData = json.loads(jsonData['weather'])
@@ -116,13 +114,25 @@ class BaiduMap(object):
 		else :
 			print('error content')
 
+class windowGUI(frame.MyFrame1):
+	"""docstring for windowGUI"""
+	obj = BaiduMap()
+
+	def __init__(self,parent):
+		super(windowGUI, self).__init__(parent)
+
+	def checkCity( self, event ):
+		print(event)
+		obj.getCityData()
+	
+	def startJob( self, event ):
+		print(event)
+
 if __name__ == '__main__':
 
 	app    = wx.App(False)
-	frame1 = frame.MyFrame1(None)
+	frame1 = windowGUI(None)
 	frame1.Show(True)
 	app.MainLoop()
-	exit()
-	obj   = BaiduMap()
-	obj.getMapData(obj.getCityData("潮州"),"古巷镇$$美食")
-
+	# obj   = BaiduMap()
+	# obj.getMapData(obj.getCityData("潮州"),"古巷镇$$美食")

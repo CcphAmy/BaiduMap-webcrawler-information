@@ -10,14 +10,16 @@ import wx
 import wx.xrc
 
 import frame
+import threading
 
+from wx.lib.pubsub import pub
 from bs4 import BeautifulSoup
 
 class BaiduMap():
 	"""docstring for BaiduMap"""
 	def __init__(self):
 		super(BaiduMap, self).__init__()
-	
+
 	def getCityData(self,cityName):
 
 		try:
@@ -26,10 +28,9 @@ class BaiduMap():
 
 			if 'weather' in jsonData: #存在天气预报的情况下
 				weatherData = json.loads(jsonData['weather'])
-				print(weatherData['OriginQuery']," PM2.5:",weatherData['pm25'],weatherData['weather0'],"[",weatherData['temp0'],"][",weatherData['wind0'],"]",end=' ')
-
+				wx.CallAfter(pub.sendMessage, "updateText", content=weatherData['OriginQuery']+" PM2.5:"+weatherData['pm25']+weatherData['weather0']+"["+weatherData['temp0']+"]["+weatherData['wind0']+"]")
 			if 'cur_area_id' in jsonData:
-				print("城市id:",jsonData['cur_area_id'])
+				wx.CallAfter(pub.sendMessage, "updateText", content="城市id:" + str(jsonData['cur_area_id']))
 				return jsonData['cur_area_id']
 			else:
 				return -1
@@ -70,7 +71,6 @@ class BaiduMap():
 		while loopValue <= loopCount:
 
 			getUrl    = "http://api.map.baidu.com/?qt=" + qt + "&c=" + str(cityId) + "&wd=" + info_ + "&rn=" + rn + "&pn=" + str(loopValue - 1) + "&ie=utf-8&oue=1&fromproduct=jsapi&res=api&callback=BMap._rd._cbk7303&ak=E4805d16520de693a3fe707cdc962045";
-			print(getUrl)
 
 			webData   = requests.get(getUrl).text
 			tempValue = int(re.search("\"total\":([\\s\\S]*?),",webData).group(1)) #数量
@@ -82,12 +82,13 @@ class BaiduMap():
 						loopCount = (int)(tempValue / 10 + 1)
 					else :
 						loopCount = (int)(tempValue / 10)
-					print("总共需要循环：" + str(loopCount))
+
+					wx.CallAfter(pub.sendMessage, "updateText", content="总共需要循环：" + str(loopCount))
 
 				reJson   = re.search("content\":([\\s\\S]*?),\"current_city",webData).group(1)
 				jsonData = json.loads(reJson)
 				# 数据处理
-				print(str(loopValue) + ":" + str(len(jsonData)),end="")
+				wx.CallAfter(pub.sendMessage, "updateText", content="retrieving: page " + str(loopValue))
 				# print(jsonData)
 				for x in range(0,len(jsonData)):
 					try:
@@ -105,14 +106,14 @@ class BaiduMap():
 				break
 
 		if len(allData) > 0:
-			print('ok ... writing file')
+			wx.CallAfter(pub.sendMessage, "updateText", content="ok . writing file!!!")
 			rstr = r"[\/\\\:\*\?\"\<\>\|\$$]"
-			print(allData)
 			self.createAndWrite(str(cityId) + "_" + re.sub(rstr,"_",info_) + ".csv",rowHeader,allData)
-			print("over")
+
+			wx.CallAfter(pub.sendMessage, "updateText", content="over")
 
 		else :
-			print('error content')
+			wx.CallAfter(pub.sendMessage, "updateText", content="error content")
 
 class windowGUI(frame.MyFrame1):
 	"""docstring for windowGUI"""
@@ -123,11 +124,25 @@ class windowGUI(frame.MyFrame1):
 
 	def checkCity( self, event ):
 		print(event)
-		obj.getCityData()
 	
 	def startJob( self, event ):
-		print(event)
+		newThread = webThread(1,"Thread-1",1)
+		newThread.start()
 
+class webThread(threading.Thread):
+	"""docstring for webThread"""
+	def __init__(self,threadID, name ,counter):
+
+		super(webThread, self).__init__()
+		threading.Thread.__init__(self)
+		self.threadID = threadID
+		self.name = name
+		self.counter = counter
+	
+	def run(self):
+		obj = BaiduMap()
+		obj.getMapData(obj.getCityData("潮州"),"古巷镇$$美食")
+# wx.CallAfter(pub.sendMessage, "update", msg=i)
 if __name__ == '__main__':
 
 	app    = wx.App(False)

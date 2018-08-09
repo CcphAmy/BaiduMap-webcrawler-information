@@ -3,6 +3,7 @@
 import wx
 import wx.xrc
 
+from wx.lib.pubsub import pub
 class MyFrame1 ( wx.Frame ):
 	
 	def __init__( self, parent ):
@@ -105,7 +106,9 @@ class MyFrame1 ( wx.Frame ):
 		# Connect Events
 		self.m_button16.Bind( wx.EVT_BUTTON, self.checkCity )
 		self.m_button6.Bind( wx.EVT_BUTTON, self.startJob )
-	
+		
+		pub.subscribe(self.append, "updateText")
+
 	def append(self,content):
 		self.m_textCtrl3.AppendText(content + "\n")
 
@@ -117,5 +120,3 @@ class MyFrame1 ( wx.Frame ):
 	
 	def startJob( self, event ):
 		event.Skip()
-	
-

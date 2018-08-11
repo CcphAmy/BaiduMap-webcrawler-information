@@ -51,6 +51,9 @@ class BaiduMap():
 			writer.writerows(rowData)
 		csvFile.close()
 
+	def checkArr(self,checkArr,argv):
+		pass
+
 	def getMapData(self,cityId,info_): 
 
 		if cityId < 0 :
@@ -65,9 +68,6 @@ class BaiduMap():
 		rn        = "10" 
 		modNum    = "10"
 
-		rowHeader = ['name','address','address_norm']
-		
-
 		while loopValue <= loopCount:
 
 			getUrl    = "http://api.map.baidu.com/?qt=" + qt + "&c=" + str(cityId) + "&wd=" + info_ + "&rn=" + rn + "&pn=" + str(loopValue - 1) + "&ie=utf-8&oue=1&fromproduct=jsapi&res=api&callback=BMap._rd._cbk7303&ak=E4805d16520de693a3fe707cdc962045";
@@ -75,6 +75,7 @@ class BaiduMap():
 			webData   = requests.get(getUrl).text
 			tempValue = int(re.search("\"total\":([\\s\\S]*?),",webData).group(1)) #数量
 
+			print(getUrl)
 			if tempValue > 0:
 				if loopValue == 1:
 					modNum    = tempValue % 10 # 第一次
@@ -93,10 +94,19 @@ class BaiduMap():
 				for x in range(0,len(jsonData)):
 					try:
 						# print(jsonData[x]['name'] + " " + jsonData[x]['address_norm'] + " " + jsonData[x]['addr'])
-						tempArr = [jsonData[x]['name'],jsonData[x]['addr'],jsonData[x]['address_norm']]
+						# 
+						# 得来个信息校验
+						# 
+						tempArr = [jsonData[x]['name'],jsonData[x]['addr']] # 名称 地址
+						tempArr.append(jsonData[x]['ext']['detail_info']['phone']) 
+
+						tempArr.append(jsonData[x]['ext']['detail_info']['point']['x'])
+						tempArr.append(jsonData[x]['ext']['detail_info']['point']['y'])
+						tempArr.append(jsonData[x]['address_norm']) # 详细地址
 						allData.append(tempArr)
 					except Exception as e:
-						print(jsonData[x])
+						print(str(e))
+						# print(jsonData[x])
 						# exit()
 					
 				# 处理结束
@@ -106,8 +116,9 @@ class BaiduMap():
 
 		if len(allData) > 0:
 			wx.CallAfter(pub.sendMessage, "updateText", content="ok . writing file!!!")
-			rstr = r"[\/\\\:\*\?\"\<\>\|\$$]"
-			self.createAndWrite(str(cityId) + "_" + re.sub(rstr,"_",info_) + ".csv",rowHeader,allData)
+
+			rowHeader = ['name','address','phone','point_x','point_y','address_norm']
+			self.createAndWrite(str(cityId) + "_" + re.sub(r"[\/\\\:\*\?\"\<\>\|\$$]","_",info_) + ".csv",rowHeader,allData)
 
 			wx.CallAfter(pub.sendMessage, "updateText", content="over")
 		else :
@@ -120,6 +131,9 @@ class windowGUI(frame.MyFrame1):
 	def __init__(self,parent):
 		super(windowGUI, self).__init__(parent)
 		pub.subscribe(self.setStBool, "setStBool")
+
+	def __del__(self):
+		pass
 
 	def checkCity( self, event ):
 		if int(self.obj.getCityData(self.m_comboBox2.GetValue())) > 0:

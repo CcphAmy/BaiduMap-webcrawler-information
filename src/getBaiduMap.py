@@ -30,7 +30,7 @@ class BaiduMap():
 				weatherData = json.loads(jsonData['weather'])
 				wx.CallAfter(pub.sendMessage, "updateText", content=weatherData['OriginQuery']+" PM2.5:"+weatherData['pm25']+weatherData['weather0']+"["+weatherData['temp0']+"]["+weatherData['wind0']+"]")
 			if 'cur_area_id' in jsonData:
-				wx.CallAfter(pub.sendMessage, "updateText", content="城市id:" + str(jsonData['cur_area_id']))
+				wx.CallAfter(pub.sendMessage, "updateText", content="城市id:" + str(jsonData['cur_area_id'])+",小兵已待命!")
 				return jsonData['cur_area_id']
 			else:
 				return -1
@@ -84,8 +84,6 @@ class BaiduMap():
 					else :
 						loopCount = (int)(tempValue / 10)
 
-					wx.CallAfter(pub.sendMessage, "updateText", content="总共需要循环：" + str(loopCount))
-
 				reJson   = re.search("content\":([\\s\\S]*?),\"current_city",webData).group(1)
 				jsonData = json.loads(reJson)
 				# 数据处理
@@ -97,15 +95,36 @@ class BaiduMap():
 						# 
 						# 得来个信息校验
 						# 
-						tempArr = [jsonData[x]['name'],jsonData[x]['addr']] # 名称 地址
-						tempArr.append(jsonData[x]['ext']['detail_info']['phone']) 
+						tempArr = [str(jsonData[x]['name']),str(jsonData[x]['addr'])] # 名称 地址
 
-						tempArr.append(jsonData[x]['ext']['detail_info']['point']['x'])
-						tempArr.append(jsonData[x]['ext']['detail_info']['point']['y'])
-						tempArr.append(jsonData[x]['address_norm']) # 详细地址
+						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('overall_rating')))
+
+						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('price')))
+
+						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('shop_hours')))
+
+						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('phone'))) 
+
+
+						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('point').get('x')))
+						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('point').get('y')))
+
+						cater_tag = str(jsonData[x].get('ext').get('detail_info').get('short_comm'))
+
+						if cater_tag == "None":
+							cater_tag = str(jsonData[x].get('ext').get('detail_info').get('cater_tag'))
+
+						tempArr.append(cater_tag) 
+
+						tempArr.append(str(jsonData[x].get('address_norm'))) # 详细地址
+
 						allData.append(tempArr)
-					except Exception as e:
-						print(str(e))
+
+					except KeyError as e:
+						print('aa:' + str(e))
+
+					except Exception as exception:
+						print(str(exception))
 						# print(jsonData[x])
 						# exit()
 					
@@ -115,9 +134,10 @@ class BaiduMap():
 				break
 
 		if len(allData) > 0:
+			rowHeader = ['name','address','overall_rating','price','shop_hours','phone','point_x','point_y','short_comm','address_norm']
+
 			wx.CallAfter(pub.sendMessage, "updateText", content="ok . writing file!!!")
 
-			rowHeader = ['name','address','phone','point_x','point_y','address_norm']
 			self.createAndWrite(str(cityId) + "_" + re.sub(r"[\/\\\:\*\?\"\<\>\|\$$]","_",info_) + ".csv",rowHeader,allData)
 
 			wx.CallAfter(pub.sendMessage, "updateText", content="over")

@@ -3,7 +3,7 @@
 import wx
 import wx.xrc
 
-from wx.lib.pubsub import pub
+from pubsub import pub
 class MyFrame1 ( wx.Frame ):
 	
 	def __init__( self, parent ):
@@ -92,7 +92,7 @@ class MyFrame1 ( wx.Frame ):
 		
 		bSizer1.Add( bSizer2, 1, wx.EXPAND, 5 )
 		
-		self.m_textCtrl3 = wx.TextCtrl( self, wx.ID_ANY, u"对百度地图指定类型或关键字内容采集 可获(地点，名称，价格，评价) 等等，程序仅供测试使用。\n----------------------------------------------------\n城市必填 *\n物品必填 *\n----------------------------------------------------\n", wx.DefaultPosition, wx.Size( 450,250 ), wx.TE_MULTILINE )
+		self.m_textCtrl3 = wx.TextCtrl( self, wx.ID_ANY, u"对百度地图指定类型或关键字内容采集 可获(地点，名称，价格，评价) 等等，程序仅供测试使用。\n----------------------------------------------------\nGithub:\nhttps://github.com/CcphAmy/BaiduMap-webcrawler--information\n----------------------------------------------------\n城市必填 *\n物品必填 *\n----------------------------------------------------\n", wx.DefaultPosition, wx.Size( 450,250 ), wx.TE_MULTILINE )
 		self.m_textCtrl3.SetFont( wx.Font( 12, wx.FONTFAMILY_SWISS, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, "微软雅黑" ) )
 		
 		bSizer1.Add( self.m_textCtrl3, 0, wx.ALL, 5 )

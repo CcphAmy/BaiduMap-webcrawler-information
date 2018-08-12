@@ -12,7 +12,7 @@ import wx.xrc
 import frame
 import threading
 
-from wx.lib.pubsub import pub
+from pubsub import pub
 from bs4 import BeautifulSoup
 
 class BaiduMap():
@@ -91,10 +91,7 @@ class BaiduMap():
 				# print(jsonData)
 				for x in range(0,len(jsonData)):
 					try:
-						# print(jsonData[x]['name'] + " " + jsonData[x]['address_norm'] + " " + jsonData[x]['addr'])
-						# 
-						# 得来个信息校验
-						# 
+						print(jsonData[x])						
 						tempArr = [str(jsonData[x]['name']),str(jsonData[x]['addr'])] # 名称 地址
 
 						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('overall_rating')))
@@ -103,7 +100,7 @@ class BaiduMap():
 
 						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('shop_hours')))
 
-						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('phone'))) 
+						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('phone')).replace(","," 或 ")) 
 
 
 						tempArr.append(str(jsonData[x].get('ext').get('detail_info').get('point').get('x')))

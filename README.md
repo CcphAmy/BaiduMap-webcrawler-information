@@ -34,6 +34,6 @@
 ### 美食~
 ![](./images/scv1.png)
 ### 酒店~
-![](./images/sc2.png)
+![](./images/scv2.png)
 ### 主界面
 ![](./images/main.png)
